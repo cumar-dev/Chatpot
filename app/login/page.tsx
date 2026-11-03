@@ -2,7 +2,7 @@
 import { getUserInfo } from "@/server/user";
 import { redirect } from "next/navigation";
 import Login from "./Login";
-
+export const instant = false;
 export default async function logInPage() {
   const user = await getUserInfo();
   if(user) {

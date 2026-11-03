@@ -1,6 +1,6 @@
 import { getUserInfo } from "@/server/user";
 import { redirect } from "next/navigation";
-// export const dynamic = "force-dynamic";
+export const instant = false;
 const dashboard = async () => {
   const session = await getUserInfo();
   if (!session) {

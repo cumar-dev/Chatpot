@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getUserInfo } from "@/server/user";
 import { createConversation } from "@/lib/chat";
-
+export const instant = false;
 export default async function NewChatPage() {
   const session = await getUserInfo();
 
