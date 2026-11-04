@@ -1,5 +1,10 @@
 import { openRouter } from "@/lib/ai";
-import { getUserConversationById, loadChat, saveChat, updateConversation } from "@/lib/chat";
+import {
+  getUserConversationById,
+  loadChat,
+  saveChat,
+  updateConversation,
+} from "@/lib/chat";
 import { getUserInfo } from "@/server/user";
 
 import {
@@ -18,10 +23,7 @@ export async function POST(req: Request) {
     const user = await getUserInfo();
 
     if (!user?.user?.id) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = user.user.id;
@@ -29,11 +31,7 @@ export async function POST(req: Request) {
     // 2. Get request body
     const body = await req.json();
 
-    const {
-      messages,
-      message: singleMessage,
-      id: conversationId,
-    } = body;
+    const { messages, message: singleMessage, id: conversationId } = body;
 
     if (!conversationId) {
       return Response.json(
@@ -69,10 +67,7 @@ export async function POST(req: Request) {
     } else if (messages) {
       allMessages = messages;
     } else {
-      return Response.json(
-        { error: "Message is required" },
-        { status: 400 },
-      );
+      return Response.json({ error: "Message is required" }, { status: 400 });
     }
 
     // 5. Validate messages
@@ -81,19 +76,25 @@ export async function POST(req: Request) {
     });
 
     // 6. Convert messages
-    const modelMessages = await convertToModelMessages(
-      validatedMessages,
-    );
+    const modelMessages = await convertToModelMessages(validatedMessages);
 
     // 7. Generate AI response
+
     const result = streamText({
       model: openRouter(
         process.env.OPENROUTER_VISION_MODEL ||
           "nvidia/nemotron-3-ultra-550b-a55b:free",
       ),
       system:
-        "You are a helpful AI assistant. Answer clearly and accurately. Analyze uploaded images when provided.",
+        "You are a helpful AI assistant. Answer clearly and accurately. Analyze uploaded images when provided. Use web search when the user asks about current or recent information. Include relevant sources in your answer.",
+
       messages: modelMessages,
+
+      tools: {
+        web_search: openRouter.tools.webSearch({
+          maxResults: 5,
+        }),
+      },
     });
 
     // 8. Consume stream
@@ -119,13 +120,9 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Chat API error:", error);
 
-    return Response.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-
 
 export async function PATCH(req: Request) {
   try {
@@ -133,10 +130,7 @@ export async function PATCH(req: Request) {
     const user = await getUserInfo();
 
     if (!user?.user?.id) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // 2. Get request body
